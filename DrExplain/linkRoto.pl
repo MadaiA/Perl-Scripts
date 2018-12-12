@@ -75,7 +75,6 @@ sub process_file
 {
     if(!$pattern){$pattern  = '\.html$|\.htm$';} 
     # my $pattern = "\.css";
-
     my $file = $File::Find::name if /$pattern/;
     my $filepath = $file if $file;  
     if (!$filepath) {return;} 
@@ -93,9 +92,9 @@ sub process_file
     while (my $row = <$fh>)     
     {
         $LINE +=1;
-        if($row =~ /(?=.*)<a.*<\/a>/)
-        {
-            push @match_text, "$LINE:\t $row";
+        if($row =~ /(?:.*)(<a>.*<\/a>)/)
+        {          
+            push @match_text, "$LINE:\t $1\n";
         }
     }    
     close $fh;
@@ -103,7 +102,7 @@ sub process_file
     if($verbose){printf "There are $#match_text broke links...\n";}
 
     # Save the file with all coincidences
-    if ($#match_text >= 1)
+    if ($#match_text >= 0)
     {
         #Adding title
         if($verbose){print "Saving information...\n";}
@@ -135,4 +134,3 @@ opendir (DIR, $path) or die $!;
     }
 closedir(DIR);
 =cut
-
