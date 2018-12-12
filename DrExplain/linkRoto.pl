@@ -93,7 +93,7 @@ sub process_file
     while (my $row = <$fh>)     
     {
         $LINE +=1;
-        if($row =~ /<a href="#".*/)
+        if($row =~ /(?=.*)<a.*<\/a>/)
         {
             push @match_text, "$LINE:\t $row";
         }

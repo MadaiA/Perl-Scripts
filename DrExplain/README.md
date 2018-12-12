@@ -9,7 +9,7 @@ El programa de esta carpeta realiza un análisis de todos los archivos que fuero
 * En la carpeta Export_HTML se almacenará todos los archivos de exportación arrojados por el programa Dr.Explain.
 * El programa principal se a ejecutar pide parametros de ejecución.
 * El programa principal genera un arhivo como reporte de la información encontrada.
-* Para encontrar los links rotos se usa el siguiente patron regex <a href="#".*
+* Para encontrar los links rotos se usa el siguiente patron regex (?=.*)<a.*<\/a>
 
 # Ejemplo de Ejecución
 
