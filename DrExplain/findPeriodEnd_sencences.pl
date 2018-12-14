@@ -1,7 +1,9 @@
 #!/usr/bin/perl
 
-## Autor Madai Arteaga
-# Works at 100% the solution is the best.
+# Program for detecting period of file at end of sentences.
+# The sentences being proceses must be writed in only one row.
+# This program junk when the paragrap have "end line" (Enter - keyboard)
+# Pattern (.*[\w\n\s]$)
 
 use warnings;
 use strict;
@@ -17,7 +19,7 @@ use File::Find qw(find);
 my $USAGE =<<USAGE;
     Usage:
 
-        perl linkRoto.pl [-(dp) <bar>] [-v] [-h]
+        perl detectSentences.pl [-(dp) <bar>] [-v] [-h]
 
         where:
            
@@ -39,7 +41,7 @@ my $USAGE =<<USAGE;
                         Prints out this helpful message
 
     Example:    
-            perl .\\linkRoto.pl -v -d ..\\\\Data -p \.sql\$
+            perl .\\detectSentences.pl -v -d ..\\\\Data -p \.sql\$
 
     Warning:
     This script was tested only in windows OS. 
@@ -51,7 +53,7 @@ USAGE
 ######################################################
 
 
-my $directory;
+my $filename;
 my $path;
 my $verbose;
 my $help;
@@ -59,7 +61,7 @@ my $pattern;
 my @final_text;
 
 ##Get options
-GetOptions ("directory=s"   => \$directory,  # string            
+GetOptions ("filename=s"   => \$filename,  # string            
             "pattern=s"  => \$pattern,  #string
             "verbose"  => \$verbose,   # flag
             "help|?" => \$help)               
@@ -69,26 +71,9 @@ if($help){print("$USAGE");exit 0;}
 ##Program start
 print("Program STARTED....\n");
 
-# Reading the directory
-if(!$directory){$directory = "./Export_HTML";}
-if($verbose){printf("Opening the directory %s ....\n",($directory ne "")?$directory:$directory);}
-find \&process_file, $directory;
+if(!$filename){$filename = ".//textManual.process"}
 
-
-sub process_file
-{
-    if(!$pattern){$pattern  = '\.html$|\.htm$';} 
-    # my $pattern = "\.css";
-    my $file = $File::Find::name if /$pattern/;
-    my $filepath = $file if $file;  
-    if (!$filepath) {return;} 
-    if($verbose) {print "Analizing file $filepath ....\n";}        
-
-    #Get the filename    
-    my ($filename) = $filepath =~ /(?:\..+\/)(.*)/;
-    #print "$filename\n";
-    
-    # Opening the file
+ # Opening the filename
     open(my $fh, '<:encoding(UTF-8)', $filename)  or die "Could not open file '$filename' $!";    
 
     my $LINE = 0;
@@ -96,47 +81,29 @@ sub process_file
     while (my $row = <$fh>)     
     {
         $LINE +=1;
-        if($row =~ /(?:.*)(<a>.*<\/a>)/) #regex that match information inside de documents
-        {          
-            push @match_text, "$LINE:\t $1\n";
+        if($row =~ /(.*[\.:]$)|(.*[\w\n\s]$)/ && $row ne "\n") #regex that match information inside de documents
+        {            
+            if($2){            push @match_text, "$LINE:\t $2";            }
         }
     }    
     close $fh;
     # If verbose, print all coincidences
-    if($verbose){printf "There are $#match_text broke links...\n";}
+    if($verbose){printf "There are $#match_text incorrect sentences...\n";}
 
     # Save the file with all coincidences
+    $filename = './/reportSentences.txt';
     if ($#match_text >= 0)
-    {
+    {        
         #Adding title
         if($verbose){print "Saving information...\n";}
-        unshift @match_text, "$filepath\n";
+        unshift @match_text, "$filename\n";
+       
         push @final_text, "@match_text\n";
         if($verbose){print "Information saved...\n";}
     }    
-}
+  
+    open($fh, '>', $filename) or die "Could not open file '$filename' $!";
+    print $fh "@final_text";
+    close $fh;
 
-my $filename = '..//report.txt';
-open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
-print $fh @final_text;
-close $fh;
-print("\nProgram FINISHED....\n");
-
-
-
-
-
-=for
-opendir (DIR, $path) or die $!;
-  while (my $file = readdir(DIR)) {
-       # We only want files
-        next unless (-f "$path/$file");
-
-        # Use a regular expression to find files ending in .html
-        next unless ($file =~ m/\.html$|\.hmt$perldoc File::Find/);
-
-        print "$file\n";
-    }
-closedir(DIR);
-=cut
-
+    print("\nProgram FINISHED....\n");

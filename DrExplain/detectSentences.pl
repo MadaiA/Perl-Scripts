@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
-## Autor Madai Arteaga
-# Works at 100% the solution is the best.
+#Program for detecting correct sentences with a period.
+#Work at 80% the solution isn't the best
 
 use warnings;
 use strict;
@@ -17,7 +17,7 @@ use File::Find qw(find);
 my $USAGE =<<USAGE;
     Usage:
 
-        perl linkRoto.pl [-(dp) <bar>] [-v] [-h]
+        perl detectSentences.pl [-(dp) <bar>] [-v] [-h]
 
         where:
            
@@ -39,7 +39,7 @@ my $USAGE =<<USAGE;
                         Prints out this helpful message
 
     Example:    
-            perl .\\linkRoto.pl -v -d ..\\\\Data -p \.sql\$
+            perl .\\detectSentences.pl -v -d ..\\\\Data -p \.sql\$
 
     Warning:
     This script was tested only in windows OS. 
@@ -56,7 +56,6 @@ my $path;
 my $verbose;
 my $help;
 my $pattern;
-my @final_text;
 
 ##Get options
 GetOptions ("directory=s"   => \$directory,  # string            
@@ -96,30 +95,34 @@ sub process_file
     while (my $row = <$fh>)     
     {
         $LINE +=1;
-        if($row =~ /(?:.*)(<a>.*<\/a>)/) #regex that match information inside de documents
+        my $regex = qr/<\/?\w+((\s+\w+(\s*=\s*(?:".*?"|'.*?'|[\^'">\s]+))?)+\s*|\s*)\/?>|<!.*>|\/\/<!.*|<meta.*\/>|\s?\/\/]]>|\s+(if|{|}|\$|\.|\(|\)).*/mp;  #regex that match information inside de documents
+        my $subst = '';
+
+        my $result = $row =~ s/$regex/$subst/rg;
+
+        if($result !~ /^\s+?$/)
         {          
-            push @match_text, "$LINE:\t $1\n";
+            push @match_text, "$LINE:\t $result";
         }
     }    
     close $fh;
     # If verbose, print all coincidences
-    if($verbose){printf "There are $#match_text broke links...\n";}
+    if($verbose){printf "There are $#match_text founded sentences...\n";}
 
     # Save the file with all coincidences
     if ($#match_text >= 0)
     {
         #Adding title
         if($verbose){print "Saving information...\n";}
-        unshift @match_text, "$filepath\n";
-        push @final_text, "@match_text\n";
+        unshift @match_text, "$filepath";
+        my $filename = '..//reportSentences.txt';
+        open(my $fh, '>>', $filename) or die "Could not open file '$filename' $!";
+        print $fh "@match_text\n";
+        close $fh;
         if($verbose){print "Information saved...\n";}
     }    
 }
 
-my $filename = '..//report.txt';
-open(my $fh, '>', $filename) or die "Could not open file '$filename' $!";
-print $fh @final_text;
-close $fh;
 print("\nProgram FINISHED....\n");
 
 
